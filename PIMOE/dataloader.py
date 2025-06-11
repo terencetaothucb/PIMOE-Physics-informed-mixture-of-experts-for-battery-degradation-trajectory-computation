@@ -44,17 +44,17 @@ class BatteryDataset(Dataset):
             baseline = trimmed_ci[0]
             normalized_ci = trimmed_ci - baseline
 
-            original_voltage_range = np.linspace(3.6, 4.1, 50)[points_to_trim:] 
-            target_voltage_range = np.linspace(3.6, 4.1, 50)  
+            original_voltage_range = np.linspace(3.6, 4.15, 50)[points_to_trim:] 
+            target_voltage_range = np.linspace(3.6, 4.15, 50)  
 
             capacity_increment = np.interp(
                 target_voltage_range,
                 original_voltage_range,
                 normalized_ci
             )
-            voltage_range = np.linspace(3.6, 4.1, len(capacity_increment))
+            voltage_range = np.linspace(3.6, 4.15, len(capacity_increment))
 
-            interpolated_voltage_range = np.linspace(3.6, 4.1, 1000)
+            interpolated_voltage_range = np.linspace(3.6, 4.15, 1000)
             interpolated_capacity_increment = np.interp(
                 interpolated_voltage_range,
                 voltage_range,               
@@ -62,10 +62,10 @@ class BatteryDataset(Dataset):
             )
 
 
-            idx_3_65 = np.argmin(np.abs(interpolated_voltage_range - 3.65))
-            capacity_at_3_65 = interpolated_capacity_increment[idx_3_65]
+            idx_005 = np.argmin(np.abs(interpolated_voltage_range - 3.65))
+            capacity_at_005 = interpolated_capacity_increment[idx_005]
 
-            target_capacity = capacity_at_3_65 + 200
+            target_capacity = capacity_at_005 + 200
             target_idx = np.argmax(interpolated_capacity_increment >= target_capacity)
             voltage_at_target = interpolated_voltage_range[target_idx] if target_idx > 0 else np.nan
 
@@ -88,7 +88,7 @@ class BatteryDataset(Dataset):
             features = np.concatenate([
                 relaxation_features,         
                 capacity_increment_features, 
-                [capacity_at_3_65],          
+                [capacity_at_005],          
                 [voltage_at_target]        
             ])
 
@@ -162,27 +162,27 @@ class BatteryDataset1(Dataset):
             baseline = trimmed_ci[0]
             normalized_ci = trimmed_ci - baseline
 
-            original_voltage_range = np.linspace(3.6, 4.1, 50)[points_to_trim:]  
-            target_voltage_range = np.linspace(3.6, 4.1, 50)  
+            original_voltage_range = np.linspace(3.6, 4.15, 50)[points_to_trim:]  
+            target_voltage_range = np.linspace(3.6, 4.15, 50)  
 
             capacity_increment = np.interp(
                 target_voltage_range,
                 original_voltage_range,
                 normalized_ci
             )
-            voltage_range = np.linspace(3.6, 4.1, len(capacity_increment))
+            voltage_range = np.linspace(3.6, 4.15, len(capacity_increment))
 
-            interpolated_voltage_range = np.linspace(3.6, 4.1, 1000)
+            interpolated_voltage_range = np.linspace(3.6, 4.15, 1000)
             interpolated_capacity_increment = np.interp(
                 interpolated_voltage_range,
                 voltage_range,               
                 capacity_increment          
             )
 
-            idx_3_65 = np.argmin(np.abs(interpolated_voltage_range - 3.65))
-            capacity_at_3_65 = interpolated_capacity_increment[idx_3_65]
+            idx_005 = np.argmin(np.abs(interpolated_voltage_range - 3.65))
+            capacity_at_005 = interpolated_capacity_increment[idx_005]
 
-            target_capacity = capacity_at_3_65 + 0.2
+            target_capacity = capacity_at_005 + 0.2
             target_idx = np.argmax(interpolated_capacity_increment >= target_capacity)
             voltage_at_target = interpolated_voltage_range[target_idx] if target_idx > 0 else np.nan
 
@@ -196,7 +196,7 @@ class BatteryDataset1(Dataset):
 
             features = np.concatenate([
                 capacity_increment_features,  
-                [capacity_at_3_65],          
+                [capacity_at_005],          
                 [voltage_at_target]        
             ])
 

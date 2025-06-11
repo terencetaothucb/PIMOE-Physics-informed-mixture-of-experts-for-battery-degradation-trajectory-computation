@@ -10,9 +10,9 @@ class Model(nn.Module):
     def __init__(self, args):
         super(Model, self).__init__()
         self.num_experts = args.num_experts 
-        self.capacity_fcs = nn.ModuleList([nn.Linear(args.seq_len, args.pred_len) for _ in range(self.num_experts)])
+        self.capacity_fc = nn.ModuleList([nn.Linear(args.seq_len, args.pred_len) for _ in range(self.num_experts)])
         input_dim = 6 if args.dataset == 'TPSL' else 12
-        self.relaxation_fc = nn.Linear(input_dim, self.num_experts)
+        self.features_fc = nn.Linear(input_dim, self.num_experts)
         self.softmax = nn.Softmax(dim=1)
         self.top_k = args.top_k
         self.alpha = args.alpha
@@ -34,9 +34,9 @@ class Model(nn.Module):
         output[~mask] = self.alpha * (torch.exp(x[~mask]) - 1)
         return output
 
-    def forward(self, capacity_increment, relaxation_features, charge_current, discharge_current, Temperature):
-        outs = [fc(capacity_increment) for fc in self.capacity_fcs]
-        raw_weights = self.relaxation_fc(relaxation_features)
+    def forward(self, capacity_increment, features, charge_current, discharge_current, Temperature):
+        outs = [fc(capacity_increment) for fc in self.capacity_fc]
+        raw_weights = self.features_fc(features)
         clean_logits = raw_weights
         if self.training:
             raw_noise_stddev = clean_logits @ self.w_noise
@@ -47,13 +47,13 @@ class Model(nn.Module):
             logits = clean_logits
         weights = self.decompostion_tp(logits) 
         weights = self.softmax(weights)
-        output = torch.zeros_like(outs[0])
+        Degradation_trend = torch.zeros_like(outs[0])
         for i in range(self.num_experts):
-            output += weights[:, i].unsqueeze(1) * outs[i]
+            Degradation_trend += weights[:, i].unsqueeze(1) * outs[i]
         charge_current = charge_current.unsqueeze(2) 
         discharge_current = discharge_current.unsqueeze(2) 
         Temperature = Temperature.unsqueeze(2) 
-        lstm_input = torch.cat([output.unsqueeze(2), charge_current, discharge_current, Temperature], dim=2)
+        lstm_input = torch.cat([Degradation_trend.unsqueeze(2), charge_current, discharge_current, Temperature], dim=2)
         lstm_out, _ = self.lstm(lstm_input)
         final_output = self.fc_final(lstm_out)
 
